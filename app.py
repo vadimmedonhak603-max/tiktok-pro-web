@@ -68,3 +68,20 @@ with col_out:
             </body>
             """
             st.components.v1.html(js_code, height=45)
+# --- SEKCJA WSPARCIA (NA DOLE STRONY) ---
+st.write("---")  # Linia oddzielająca
+st.write("❤️ Support this project / Wesprzyj projekt")
+
+# Ten blok usuwa duplikaty i tworzy jeden, klikalny przycisk na środku
+st.markdown(
+    """
+    <div style="display: flex; justify-content: center;">
+        <a href="https://www.buymeacoffee.com/waldAS" target="_blank">
+            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" 
+            alt="Buy Me A Coffee" 
+            style="height: 60px !important; width: 217px !important;" >
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
