@@ -1,44 +1,48 @@
 import streamlit as st
-import yt_dlp
-import os
+import requests
 
-st.set_page_config(page_title="TikTok PRO - Hurtowe Pobieranie", layout="centered")
+st.set_page_config(page_title="TikTok PRO - Hurtowe Pobieranie", layout="wide")
 
-st.markdown("<h1 style='text-align: center; color: #00d4ff;'>TikTok PRO - Batch Downloader</h1>", unsafe_allow_html=True)
+# Stylizacja tła i napisów
+st.markdown("""
+    <style>
+    .main { background-color: #0e1117; color: white; }
+    .stButton>button { width: 100%; background-color: #00d4ff; color: black; font-weight: bold; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# Duże pole na wiele linków
-urls_input = st.text_area("Wklej listę linków z TikToka (jeden pod drugim):", height=200)
+st.title("🚀 TikTok PRO - Masowy Downloader")
 
-if st.button("POBIERZ WSZYSTKIE FILMY"):
-    if urls_input:
-        urls = urls_input.split('\n')
-        urls = [u.strip() for u in urls if u.strip()]
-        
-        st.info(f"Znaleziono {len(urls)} linków. Zaczynam pobieranie...")
-        
-        for index, url in enumerate(urls):
-            try:
-                st.write(f"🔄 Pobieranie filmu nr {index+1}...")
-                
-                ydl_opts = {
-                    'format': 'bestvideo+bestaudio/best',
-                    'noplaylist': True,
-                    'quiet': True,
-                    # To pomaga uniknąć błędu 403 (udajemy przeglądarkę):
-                    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-                }
-                
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
-                    video_url = info['url']
-                    title = info.get('title', f'video_{index}')
+# Dwa paski (kolumny), o które prosiłeś
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.subheader("📥 Wklej linki")
+    urls_input = st.text_area("Wklej listę linków z TikToka (jeden pod drugim):", height=300, placeholder="https://www.tiktok.com/@user/video/...\nhttps://www.tiktok.com/@user/video/...")
+
+with col2:
+    st.subheader("📋 Status pobierania")
+    if st.button("URUCHOM POBIERANIE MASOWE"):
+        if urls_input:
+            urls = urls_input.split('\n')
+            urls = [u.strip() for u in urls if u.strip()]
+            
+            for index, url in enumerate(urls):
+                try:
+                    # Używamy zewnętrznego API, które omija błąd 403
+                    api_url = f"https://api.tiklydown.eu.org/api/download?url={url}"
+                    response = requests.get(api_url).json()
                     
-                    st.video(video_url)
-                    st.success(f"Gotowe: {title}")
-                    st.markdown(f"[KLIKNIJ TUTAJ ABY ZAPISAĆ FILM {index+1}]({video_url})")
-                    st.divider()
+                    video_data = response.get('video', {})
+                    no_watermark = video_data.get('noWatermark') or video_data.get('noWatermark2')
                     
-            except Exception as e:
-                st.error(f"Błąd przy linku nr {index+1}: Link jest niepoprawny lub TikTok go zablokował.")
-    else:
-        st.warning("Najpierw wklej linki!")
+                    if no_watermark:
+                        st.success(f"✅ Film {index+1} gotowy!")
+                        st.video(no_watermark)
+                        st.markdown(f"[📥 POBIERZ FILM {index+1} BEZ ZNAKU]({no_watermark})")
+                    else:
+                        st.error(f"❌ Nie udało się pobrać filmu {index+1}")
+                except Exception as e:
+                    st.error(f"⚠️ Błąd przy linku {index+1}. TikTok zablokował połączenie.")
+        else:
+            st.warning("Wklej chociaż jeden link!")
