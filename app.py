@@ -2,111 +2,104 @@ import streamlit as st
 import requests
 import time
 
-# Ustawienia wyglądu - Ciemny gradient z Twojego logo
+# Konfiguracja - czysta, profesjonalna czerń
 st.set_page_config(page_title="TikTok PRO", layout="wide")
 
 st.markdown("""
     <style>
-    .stApp { background: radial-gradient(circle, #1a1c22 0%, #000000 100%); color: white; }
+    /* Tło gradientowe z Twojego logo */
+    .stApp { 
+        background: radial-gradient(circle, #1a1c22 0%, #000000 100%); 
+        color: white; 
+    }
     header, footer {visibility: hidden;}
     
-    /* Napisy i pola */
-    h1, h2, h3, p { font-family: 'Segoe UI', sans-serif; }
+    /* Pole tekstowe neonowe */
     .stTextArea textarea { 
         background-color: #050505; color: #00d4ff; 
-        border: 1px solid #00d4ff; border-radius: 10px;
+        border: 1px solid #00d4ff; border-radius: 12px;
     }
 
-    /* Przyciski główne */
-    .stButton>button { 
-        background: linear-gradient(145deg, #00d4ff, #0055ff); 
-        color: white; font-weight: bold; border-radius: 30px; 
-        height: 3em; width: 100%; border: none; font-size: 14px;
-    }
-
-    /* Karty pobierania - mniejsze i dyskretne */
-    .video-item {
+    /* Karty pobierania - eleganckie i małe */
+    .video-row {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid #2a2d35;
-        padding: 8px 15px;
-        border-radius: 10px;
-        margin-bottom: 8px;
+        padding: 6px 15px;
+        border-radius: 8px;
+        margin-bottom: 5px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
+    /* Mały zielony przycisk pobierania */
     .dl-btn {
         background-color: #28a745;
         color: white !important;
-        padding: 5px 15px;
+        padding: 4px 12px;
         text-decoration: none;
-        border-radius: 5px;
+        border-radius: 4px;
         font-weight: bold;
-        font-size: 13px; /* Mały, czytelny napis */
+        font-size: 12px;
         border: none;
         cursor: pointer;
     }
     </style>
     """, unsafe_allow_html=True)
 
-if 'links' not in st.session_state:
-    st.session_state.links = []
+st.title("🛡️ TikTok PRO")
 
-st.title("🛡️ TikTok PRO Downloader")
+col_in, col_out = st.columns([1, 1])
 
-col1, col2 = st.columns([1, 1])
+with col_in:
+    st.subheader("📥 Paste Links / Wklej Linki")
+    # Automatyczne odświeżanie po wklejeniu (on_change)
+    urls_input = st.text_area("URLs:", height=350, placeholder="Paste links here...", key="urls")
 
-with col1:
-    st.subheader("📥 1. Paste Links / Wklej Linki")
-    input_data = st.text_area("URLs:", height=300, placeholder="Paste TikTok links here...")
-    if st.button("PROCESS / PRZETWÓRZ"):
-        if input_data:
-            urls = [u.strip() for u in input_data.split('\n') if u.strip()]
-            results = []
-            progress = st.progress(0)
-            for i, url in enumerate(urls):
-                try:
-                    r = requests.get(f"https://www.tikwm.com/api/?url={url}").json()
-                    if r.get('code') == 0:
-                        results.append(r['data']['play'])
-                    time.sleep(0.3)
-                except: pass
-                progress.progress((i + 1) / len(urls))
-            st.session_state.links = results
-
-with col2:
-    st.subheader("📋 2. Ready / Gotowe")
-    if st.session_state.links:
-        for i, link in enumerate(st.session_state.links):
-            # Skrypt wymuszający pobranie pliku na dysk
-            js_download = f"""
-            <script>
-            function startDownload_{i}() {{
-                fetch('{link}')
-                .then(response => response.blob())
-                .then(blob => {{
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = "video_{i+1}.mp4";
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                }})
-                .catch(() => window.open('{link}', '_blank'));
-            }}
-            </script>
-            <div class="video-item">
-                <span style="color: #00d4ff; font-size: 13px;">Video #{i+1}</span>
-                <button onclick="startDownload_{i}()" class="dl-btn">DOWNLOAD / POBIERZ</button>
-            </div>
-            """
-            st.components.v1.html(js_download, height=55)
+with col_out:
+    st.subheader("📋 Ready / Gotowe")
+    
+    if urls_input:
+        urls = [u.strip() for u in urls_input.split('\n') if u.strip()]
         
-        if st.sidebar.button("Clear / Wyczyść"):
-            st.session_state.links = []
-            st.rerun()
+        # Pętla generująca przyciski od razu
+        for i, url in enumerate(urls):
+            try:
+                # Szybkie zapytanie do API
+                r = requests.get(f"https://www.tikwm.com/api/?url={url}").json()
+                if r.get('code') == 0:
+                    link = r['data']['play']
+                    
+                    # Generowanie małego wiersza z przyciskiem "Blob" (bez otwierania kart)
+                    js_code = f"""
+                    <script>
+                    function startDl_{i}() {{
+                        fetch('{link}')
+                        .then(r => r.blob())
+                        .then(blob => {{
+                            const u = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = u;
+                            a.download = "video_{i+1}.mp4";
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(u);
+                        }});
+                    }}
+                    </script>
+                    <div class="video-row">
+                        <span style="color: #00d4ff; font-size: 12px;">#{i+1} Ready / Gotowe</span>
+                        <button onclick="startDl_{i}()" class="dl-btn">DOWNLOAD / POBIERZ</button>
+                    </div>
+                    """
+                    st.components.v1.html(js_code, height=45)
+                else:
+                    st.error(f"Error link #{i+1}")
+            except:
+                pass
+    else:
+        st.write("Waiting for links... / Czekam na linki...")
 
-st.sidebar.markdown("---")
-st.sidebar.info("Tip: If the file opens in a new tab, right-click 'Save as'.")
+# Przycisk czyszczenia w boku
+if st.sidebar.button("Clear All / Wyczyść"):
+    st.rerun()
