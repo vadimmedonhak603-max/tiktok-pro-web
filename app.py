@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import time
 
-# Konfiguracja PRO - czarna elegancja
 st.set_page_config(page_title="TikTok PRO", layout="wide")
 
 st.markdown("""
@@ -19,42 +18,41 @@ st.markdown("""
         border: 1px solid #00d4ff; border-radius: 12px;
     }
 
-    /* NIEBIESKI PRZYCISK STARTOWY */
+    /* Niebieski przycisk startowy */
     .stButton>button { 
         background: linear-gradient(145deg, #00d4ff, #0055ff); 
-        color: white; font-weight: bold; border-radius: 30px; 
+        color: white !important; font-weight: bold; border-radius: 30px; 
         height: 3.5em; width: 100%; border: none; font-size: 16px;
-        box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3);
     }
 
-    /* Karta wiersza - mniejsza */
+    /* Karta wiersza - teraz całkowicie przezroczysta */
     .video-row {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid #2a2d35;
-        padding: 5px 15px;
-        border-radius: 8px;
+        padding: 5px 0px;
         margin-bottom: 5px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        background: transparent;
     }
 
-    /* ZIELONE NAPISY (tam gdzie pokazałeś palcem) */
+    /* NAPRAWA: Zielony tekst zamiast białych prostokątów */
     .video-info-green {
         color: #28a745 !important;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: bold;
+        background: none !important; /* Usuwa białe tło */
+        border: none !important;
     }
 
-    /* Mały zielony przycisk pobierania */
+    /* Zielony przycisk pobierania - wyraźny tekst */
     .dl-btn {
-        background-color: #28a745;
+        background-color: #28a745 !important;
         color: white !important;
-        padding: 4px 12px;
+        padding: 6px 15px;
         text-decoration: none;
-        border-radius: 4px;
+        border-radius: 6px;
         font-weight: bold;
-        font-size: 12px;
+        font-size: 13px;
         border: none;
         cursor: pointer;
     }
@@ -72,7 +70,6 @@ with col_in:
     st.subheader("📥 1. Paste Links / Wklej Linki")
     urls_input = st.text_area("URLs:", height=300, placeholder="Paste links here...")
     
-    # PRZYRÓCONY NIEBIESKI PRZYCISK
     if st.button("🚀 START / PRZETWÓRZ"):
         if urls_input:
             urls = [u.strip() for u in urls_input.split('\n') if u.strip()]
@@ -113,10 +110,7 @@ with col_out:
                 <button onclick="forceDl_{i}()" class="dl-btn">DOWNLOAD / POBIERZ</button>
             </div>
             """
-            st.components.v1.html(js_code, height=45)
+            # Zwiększyłem wysokość, żeby przyciski się nie ucinały
+            st.components.v1.html(js_code, height=50)
     else:
-        st.write("Czekam na kliknięcie START... / Waiting for START...")
-
-if st.sidebar.button("Wyczyść / Clear"):
-    st.session_state.links = []
-    st.rerun()
+        st.write("Czekam na kliknięcie START...")
