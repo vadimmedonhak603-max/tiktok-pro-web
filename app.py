@@ -2,72 +2,81 @@ import streamlit as st
 import requests
 import time
 
-# Ustawienia strony - głęboka czerń
+# Konfiguracja strony
 st.set_page_config(page_title="TikTok PRO - Black Edition", layout="wide")
 
+# STYLIZACJA POD TWOJE LOGO
 st.markdown("""
     <style>
-    /* Cała strona na czarno */
-    .stApp { background-color: #000000; color: #ffffff; }
+    /* Tło identyczne jak na Twoim logo (ciemny gradient) */
+    .stApp { 
+        background: radial-gradient(circle, #1a1c22 0%, #000000 100%);
+        color: #ffffff; 
+    }
+    
+    /* Ukrycie elementów Streamlit */
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Czarny pasek tekstowy z neonową ramką */
+    /* Neonowe pole tekstowe */
     .stTextArea textarea { 
         background-color: #050505; 
         color: #00d4ff; 
         border: 2px solid #00d4ff; 
-        border-radius: 10px;
-        font-family: 'Courier New', Courier, monospace;
+        border-radius: 12px;
+        box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.2);
     }
     
-    /* Przycisk neonowy */
+    /* Przycisk pasujący do tarczy logo */
     .stButton>button { 
-        background: linear-gradient(90deg, #00d4ff, #0055ff); 
+        background: linear-gradient(145deg, #00d4ff, #0055ff); 
         color: white; 
         font-weight: bold; 
         border: none; 
-        border-radius: 30px; 
-        height: 3.5em; 
+        border-radius: 50px; 
+        height: 3.8em; 
         width: 100%; 
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        box-shadow: 0 4px 15px rgba(0, 85, 255, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     
-    /* Karty filmów - czarne */
+    /* Karty z filmami w kolorze tarczy logo */
     .video-card { 
-        border: 1px solid #1a1a1a; 
-        padding: 15px; 
+        border: 1px solid #2a2d35; 
+        padding: 20px; 
         border-radius: 15px; 
-        margin-bottom: 10px; 
-        background: #0a0a0a; 
-        text-align: center; 
+        margin-bottom: 15px; 
+        background: rgba(20, 22, 28, 0.8); 
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     
     .download-btn {
-        background-color: #28a745;
+        background: #28a745;
         color: white !important;
-        padding: 12px 25px;
+        padding: 12px 30px;
         text-decoration: none;
         border-radius: 50px;
         font-weight: bold;
         display: inline-block;
-        margin-top: 5px;
-        border: 1px solid #28a745;
+        margin-top: 10px;
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🎬 TikTok PRO - BLACK MASS DOWNLOAD")
+st.title("🛡️ TikTok PRO - Masowe Pobieranie")
 
 col_input, col_output = st.columns([1, 2])
 
 with col_input:
-    st.subheader("📥 Lista linków")
-    urls_input = st.text_area("Wklej linki jeden pod drugim:", height=450)
-    process_btn = st.button("GENERUJ LINKI DO POBRANIA")
+    st.subheader("📥 1. Wklej linki")
+    urls_input = st.text_area("Lista linków:", height=400, placeholder="Wklej tutaj listę filmów...")
+    process_btn = st.button("GENERUJ LISTĘ DO POBRANIA")
 
 with col_output:
-    st.subheader("📋 Gotowe pliki")
+    st.subheader("📋 2. Twoje Pliki")
     if process_btn and urls_input:
         urls = [u.strip() for u in urls_input.split('\n') if u.strip()]
         links_for_js = []
@@ -83,31 +92,37 @@ with col_output:
                     
                     st.markdown(f"""
                         <div class='video-card'>
-                            <span style='color: #888;'>Film #{index+1}</span><br>
-                            <a href="{video_url}" download class="download-btn">⬇️ ZAPISZ TERAZ</a>
+                            <span style='color: #00d4ff; font-size: 0.9em;'>GOTOWY DO POBRANIA #{index+1}</span><br>
+                            <a href="{video_url}" download class="download-btn">⬇️ POBIERZ PLIK</a>
                         </div>
                     """, unsafe_allow_html=True)
                 time.sleep(0.5)
             except:
-                st.error(f"Błąd przy nr {index+1}")
+                st.error(f"Błąd przy linku nr {index+1}")
         
         if links_for_js:
-            st.success(f"Przygotowano {len(links_for_js)} filmów!")
-            
-            # MAGIA: Przycisk, który próbuje otworzyć wszystkie linki na raz
-            if st.button("🚀 POBIERZ WSZYSTKO NA RAZ (KLIKNIJ)"):
+            st.divider()
+            # Przycisk "wszystko na raz"
+            if st.button("🚀 URUCHOM AUTOMATYCZNE POBIERANIE WSZYSTKIEGO"):
+                # Ten skrypt "klika" za Ciebie w linki co 1.5 sekundy
                 js_code = f"""
                 <script>
                 const links = {links_for_js};
                 links.forEach((link, i) => {{
                     setTimeout(() => {{
-                        window.open(link, '_blank');
+                        const a = document.createElement('a');
+                        a.href = link;
+                        a.target = '_blank';
+                        a.download = 'video_' + i + '.mp4';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
                     }}, i * 1500);
                 }});
                 </script>
                 """
                 st.components.v1.html(js_code, height=0)
-                st.warning("Upewnij się, że przeglądarka nie blokuje wyskakujących okienek!")
+                st.warning("Jeśli nic się nie dzieje, kliknij w ikonkę blokady okienek w pasku adresu przeglądarki i wybierz 'Zezwalaj'!")
 
     elif process_btn:
-        st.warning("Najpierw wklej linki!")
+        st.warning("Pole z linkami jest puste!")
