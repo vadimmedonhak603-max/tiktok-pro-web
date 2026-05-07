@@ -68,3 +68,11 @@ with col_out:
             </body>
             """
             st.components.v1.html(js_code, height=45)
+# Dodaj to na samym dole pliku app.py
+st.markdown("---")
+st.write("❤️ Support this project / Wesprzyj projekt")
+st.markdown("""
+    <a href="https://www.buymeacoffee.com/TWOJA_NAZWA" target="_blank">
+        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 180px !important;" >
+    </a>
+    """, unsafe_allow_html=True)
