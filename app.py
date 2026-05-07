@@ -1,48 +1,65 @@
 import streamlit as st
 import requests
+import time
 
 st.set_page_config(page_title="TikTok PRO - Hurtowe Pobieranie", layout="wide")
 
-# Stylizacja tła i napisów
 st.markdown("""
     <style>
     .main { background-color: #0e1117; color: white; }
-    .stButton>button { width: 100%; background-color: #00d4ff; color: black; font-weight: bold; }
+    .stTextArea textarea { background-color: #1a1c24; color: #00d4ff; border: 1px solid #00d4ff; }
+    .stButton>button { background: linear-gradient(90deg, #00d4ff, #0055ff); color: white; font-weight: bold; border: none; border-radius: 10px; height: 3em; }
+    .video-card { border: 1px solid #333; padding: 10px; border-radius: 10px; margin-bottom: 20px; background: #161b22; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🚀 TikTok PRO - Masowy Downloader")
+st.title("🚀 TikTok PRO - Masowy Downloader v2")
 
-# Dwa paski (kolumny), o które prosiłeś
-col1, col2 = st.columns([1, 1])
+# Podział na dwie kolumny (Paski)
+col_input, col_output = st.columns([1, 2])
 
-with col1:
-    st.subheader("📥 Wklej linki")
-    urls_input = st.text_area("Wklej listę linków z TikToka (jeden pod drugim):", height=300, placeholder="https://www.tiktok.com/@user/video/...\nhttps://www.tiktok.com/@user/video/...")
+with col_input:
+    st.subheader("📥 1. Wklej linki")
+    urls_input = st.text_area("Wklej listę linków (jeden pod drugim):", height=400, placeholder="https://www.tiktok.com/...")
+    process_btn = st.button("URUCHOM POBIERANIE MASOWE")
 
-with col2:
-    st.subheader("📋 Status pobierania")
-    if st.button("URUCHOM POBIERANIE MASOWE"):
-        if urls_input:
-            urls = urls_input.split('\n')
-            urls = [u.strip() for u in urls if u.strip()]
-            
-            for index, url in enumerate(urls):
+with col_output:
+    st.subheader("📋 2. Twoje Filmy")
+    if process_btn and urls_input:
+        urls = [u.strip() for u in urls_input.split('\n') if u.strip()]
+        
+        for index, url in enumerate(urls):
+            with st.container():
                 try:
-                    # Używamy zewnętrznego API, które omija błąd 403
-                    api_url = f"https://api.tiklydown.eu.org/api/download?url={url}"
-                    response = requests.get(api_url).json()
+                    # Używamy silnika Cobalt - obecnie najlepszy na blokady
+                    headers = {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    }
+                    data = {
+                        "url": url,
+                        "videoQuality": "1080",
+                        "filenameStyle": "classic"
+                    }
                     
-                    video_data = response.get('video', {})
-                    no_watermark = video_data.get('noWatermark') or video_data.get('noWatermark2')
+                    # Wysyłamy prośbę do instancji Cobalt
+                    api_res = requests.post("https://api.cobalt.tools/api/json", json=data, headers=headers)
+                    res_data = api_res.json()
                     
-                    if no_watermark:
-                        st.success(f"✅ Film {index+1} gotowy!")
-                        st.video(no_watermark)
-                        st.markdown(f"[📥 POBIERZ FILM {index+1} BEZ ZNAKU]({no_watermark})")
+                    if res_data.get('status') == 'stream':
+                        video_url = res_data.get('url')
+                        st.markdown(f"<div class='video-card'>", unsafe_allow_html=True)
+                        st.success(f"Film {index+1} gotowy!")
+                        st.video(video_url)
+                        st.markdown(f"[📥 POBIERZ TEN FILM]({video_url})")
+                        st.markdown("</div>", unsafe_allow_html=True)
                     else:
-                        st.error(f"❌ Nie udało się pobrać filmu {index+1}")
+                        st.error(f"❌ Film {index+1}: TikTok na razie blokuje ten link. Spróbuj za chwilę.")
+                    
+                    # Mała przerwa, żeby TikTok nas nie uznał za robota
+                    time.sleep(1.5)
+                    
                 except Exception as e:
-                    st.error(f"⚠️ Błąd przy linku {index+1}. TikTok zablokował połączenie.")
-        else:
-            st.warning("Wklej chociaż jeden link!")
+                    st.error(f"⚠️ Problem z połączeniem przy filmie {index+1}")
+    elif process_btn:
+        st.warning("Lista linków jest pusta!")
