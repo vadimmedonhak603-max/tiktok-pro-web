@@ -76,3 +76,12 @@ st.markdown("""
         <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px !important;width: 180px !important;" >
     </a>
     """, unsafe_allow_html=True)
+# To jest kod, który sprawi, że obrazek będzie klikalnym linkiem
+st.markdown(
+    f"""
+    <a href="https://www.buymeacoffee.com/waldAS" target="_blank">
+        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+    </a>
+    """,
+    unsafe_allow_html=True
+)
